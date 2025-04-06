@@ -1,0 +1,617 @@
+<div style="
+margin: 0;
+min-height: 100vh;
+background: transparent;
+display: flex;
+justify-content: center;
+align-items: center;
+font-family: 'Segoe UI', sans-serif;
+padding: 1rem;
+">
+  <style>
+    .delete-task-btn:hover {
+      color: #dc3545 !important;
+    }
+
+    #delete-bin {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      background-color: #f8d7da; /* Light red background */
+      color: #721c24; /* Dark red text */
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #delete-bin.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1.2);
+    }
+  </style>
+
+  <div style="
+    width: 100%;
+    max-width: 1200px;
+    height: calc(100vh - 2rem);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    padding: 1.5rem;
+    gap: 1.5rem;
+    scrollbar-width: none;
+  " id="status-container">
+
+    <!-- Incomplete Tasks Column -->
+    <div class="status-section position-relative" data-status="incomplete" style="
+      min-width: 300px;
+      flex: 1;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: all 0.3s ease;
+      max-height: 100%;
+    ">
+      <h3 class="mb-3 text-center" style="color: #374151;">
+        <i class="fas fa-list me-2"></i>To Do
+      </h3>
+
+      <div style="height: 1px; background-color: rgba(0,0,0,0.1); margin: 0.5rem 0;"></div>
+
+      <div style="
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        margin-bottom: 60px;
+      ">
+        <ul class="list-group" id="incomplete-tasks">
+          <% @incomplete.each do |task| %>
+            <li class="list-group-item position-relative task-card" draggable="true" data-task-id="<%= task.id %>"
+                data-bs-toggle="modal" data-bs-target="#taskDetailsModal<%= task.id %>"
+                style="
+                  background: white;
+                  border-radius: 10px;
+                  margin-bottom: 0.5rem;
+                  border: 1px solid rgba(0,0,0,0.1);
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  min-height: 50px;
+                  display: flex;
+                  flex-direction: column; /* Stack title, due date, and priority */
+                  align-items: flex-start; /* Align items to the start */
+                  padding: 0.75rem 1rem;
+                  cursor: pointer; /* Indicate it's clickable */
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'"
+                onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+              <span class="task-title" style="
+                color: #333;
+                font-size: 1rem; /* Slightly larger title */
+                font-weight: 500; /* Semi-bold */
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: 100%; /* Take full width */
+              ">
+                <%= task.title %>
+              </span>
+
+              <% if task.due_date.present? %>
+                <small class="text-muted" style="
+                  font-size: 0.75rem;
+                  margin-top: 0.25rem; /* Add some space */
+                ">
+                  Due: <%= time_ago_in_words(task.due_date) %> ago
+                </small>
+              <% end %>
+
+              <% priority_text = case task.priority %>
+              <% when 1 %>
+                <% "High" %>
+              <% when 2 %>
+                <% "Medium" %>
+              <% when 3 %>
+                <% "Low" %>
+              <% end %>
+
+              <% if priority_text.present? %>
+                <span class="badge bg-secondary" style="
+                  font-size: 0.65rem;
+                  margin-top: 0.25rem; /* Add some space */
+                ">
+                  <%= priority_text %> Priority
+                </span>
+              <% end %>
+            </li>
+
+            <!-- Task Details Modal -->
+            <div class="modal fade" id="taskDetailsModal<%= task.id %>" tabindex="-1" aria-labelledby="taskDetailsModalLabel<%= task.id %>" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="taskDetailsModalLabel<%= task.id %>"><%= task.title %></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p><strong>Description:</strong> <%= task.description %></p>
+                    <p><strong>Due Date:</strong> <%= task.due_date&.strftime("%B %d, %Y") || "No due date" %></p>
+                    <p><strong>Priority:</strong> <%= priority_text %></p>
+                    <p><strong>Label:</strong> <%= task.label&.name || "No label" %></p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Ongoing Tasks Column -->
+    <div class="status-section position-relative" data-status="ongoing" style="
+      min-width: 300px;
+      flex: 1;
+      background: linear-gradient(135deg, #ffffff 0%, #fff8f0 100%);
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: all 0.3s ease;
+      max-height: 100%;
+    ">
+      <h3 class="mb-3 text-center" style="color: #374151;">
+        <i class="fas fa-spinner me-2"></i>In Progress
+      </h3>
+
+      <div style="height: 1px; background-color: rgba(0,0,0,0.1); margin: 0.5rem 0;"></div>
+
+      <div style="
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      ">
+        <ul class="list-group" id="ongoing-tasks">
+          <% @ongoing.each do |task| %>
+            <li class="list-group-item position-relative task-card" draggable="true" data-task-id="<%= task.id %>"
+                data-bs-toggle="modal" data-bs-target="#taskDetailsModal<%= task.id %>"
+                style="
+                  background: white;
+                  border-radius: 10px;
+                  margin-bottom: 0.5rem;
+                  border: 1px solid rgba(0,0,0,0.1);
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  min-height: 50px;
+                  display: flex;
+                  flex-direction: column; /* Stack title, due date, and priority */
+                  align-items: flex-start; /* Align items to the start */
+                  padding: 0.75rem 1rem;
+                  cursor: pointer; /* Indicate it's clickable */
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'"
+                onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+              <span class="task-title" style="
+                color: #333;
+                font-size: 1rem; /* Slightly larger title */
+                font-weight: 500; /* Semi-bold */
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: 100%; /* Take full width */
+              ">
+                <%= task.title %>
+              </span>
+
+              <% if task.due_date.present? %>
+                <small class="text-muted" style="
+                  font-size: 0.75rem;
+                  margin-top: 0.25rem; /* Add some space */
+                ">
+                  Due: <%= time_ago_in_words(task.due_date) %> ago
+                </small>
+              <% end %>
+
+              <% priority_text = case task.priority %>
+              <% when 1 %>
+                <% "High" %>
+              <% when 2 %>
+                <% "Medium" %>
+              <% when 3 %>
+                <% "Low" %>
+              <% end %>
+
+              <% if priority_text.present? %>
+                <span class="badge bg-secondary" style="
+                  font-size: 0.65rem;
+                  margin-top: 0.25rem; /* Add some space */
+                ">
+                  <%= priority_text %> Priority
+                </span>
+              <% end %>
+            </li>
+
+            <!-- Task Details Modal -->
+            <div class="modal fade" id="taskDetailsModal<%= task.id %>" tabindex="-1" aria-labelledby="taskDetailsModalLabel<%= task.id %>" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="taskDetailsModalLabel<%= task.id %>"><%= task.title %></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p><strong>Description:</strong> <%= task.description %></p>
+                    <p><strong>Due Date:</strong> <%= task.due_date&.strftime("%B %d, %Y") || "No due date" %></p>
+                    <p><strong>Priority:</strong> <%= priority_text %></p>
+                    <p><strong>Label:</strong> <%= task.label&.name || "No label" %></p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Completed Tasks Column -->
+    <div class="status-section position-relative" data-status="complete" style="
+      min-width: 300px;
+      flex: 1;
+      background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: all 0.3s ease;
+      max-height: 100%;
+    ">
+      <h3 class="mb-3 text-center" style="color: #374151;">
+        <i class="fas fa-check-circle me-2"></i>Completed
+      </h3>
+
+      <div style="height: 1px; background-color: rgba(0,0,0,0.1); margin: 0.5rem 0;"></div>
+
+      <div style="
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      ">
+        <ul class="list-group" id="complete-tasks">
+          <% @complete.each do |task| %>
+            <li class="list-group-item position-relative task-card" draggable="true" data-task-id="<%= task.id %>"
+                data-bs-toggle="modal" data-bs-target="#taskDetailsModal<%= task.id %>"
+                style="
+                  background: white;
+                  border-radius: 10px;
+                  margin-bottom: 0.5rem;
+                  border: 1px solid rgba(0,0,0,0.1);
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  min-height: 50px;
+                  display: flex;
+                  flex-direction: column; /* Stack title, due date, and priority */
+                  align-items: flex-start; /* Align items to the start */
+                  padding: 0.75rem 1rem;
+                  cursor: pointer; /* Indicate it's clickable */
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'"
+                onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+              <span class="task-title" style="
+                color: #333;
+                font-size: 1rem; /* Slightly larger title */
+                font-weight: 500; /* Semi-bold */
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: 100%; /* Take full width */
+              ">
+                <%= task.title %>
+              </span>
+
+              <% if task.due_date.present? %>
+                <small class="text-muted" style="
+                  font-size: 0.75rem;
+                  margin-top: 0.25rem; /* Add some space */
+                ">
+                  Due: <%= time_ago_in_words(task.due_date) %> ago
+                </small>
+              <% end %>
+
+              <% priority_text = case task.priority %>
+              <% when 1 %>
+                <% "High" %>
+              <% when 2 %>
+                <% "Medium" %>
+              <% when 3 %>
+                <% "Low" %>
+              <% end %>
+
+              <% if priority_text.present? %>
+                <span class="badge bg-secondary" style="
+                  font-size: 0.65rem;
+                  margin-top: 0.25rem; /* Add some space */
+                ">
+                  <%= priority_text %> Priority
+                </span>
+              <% end %>
+            </li>
+
+            <!-- Task Details Modal -->
+            <div class="modal fade" id="taskDetailsModal<%= task.id %>" tabindex="-1" aria-labelledby="taskDetailsModalLabel<%= task.id %>" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="taskDetailsModalLabel<%= task.id %>"><%= task.title %></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p><strong>Description:</strong> <%= task.description %></p>
+                    <p><strong>Due Date:</strong> <%= task.due_date&.strftime("%B %d, %Y") || "No due date" %></p>
+                    <p><strong>Priority:</strong> <%= priority_text %></p>
+                    <p><strong>Label:</strong> <%= task.label&.name || "No label" %></p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+
+    <div id="delete-bin">
+      <i class="fas fa-trash" style="font-size: 1.2rem;"></i>
+    </div>
+
+    <!-- Add Task Button -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal" style="
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    "
+    onmouseover="this.style.transform='scale(1.1)'"
+    onmouseout="this.style.transform='scale(1)'">
+      <i class="fas fa-plus" style="font-size: 1.2rem;"></i>
+    </button>
+
+    <!-- Add Task Modal -->
+    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+            <!-- filepath: /home/kshitij/Projects/Anukrama/app/views/users/show.html.erb -->
+          <div class="modal-body">
+            <%= form_with(model: Task.new, url: tasks_path, local: true, id: 'addTaskForm') do |form| %>
+              <div class="mb-3">
+                <%= form.label :title, class: "form-label" %>
+                <%= form.text_field :title, class: "form-control", required: true %>
+              </div>
+              <div class="mb-3">
+                <%= form.label :description, class: "form-label" %>
+                <%= form.text_area :description, class: "form-control" %>
+              </div>
+              <div class="mb-3">
+                <%= form.label :due_date, class: "form-label" %>
+                <%= form.date_field :due_date, class: "form-control" %>
+              </div>
+              <div class="mb-3">
+                <%= form.label :label, class: "form-label" %>
+                <div class="input-group">
+                  <%= form.select :label_id,
+                      @labels.map { |label| [label.name, label.id] },
+                      { include_blank: "Select existing label" },
+                      { class: "form-select", id: "existing_label" }
+                  %>
+                  <span class="input-group-text">or</span>
+                  <%= form.text_field :label_name,
+                      class: "form-control",
+                      placeholder: "Create new label",
+                      id: "new_label"
+                  %>
+                </div>
+              </div>
+              <div class="mb-3">
+                <%= form.label :priority, class: "form-label" %>
+                <%= form.select :priority,
+                    options_for_select([['High', 1], ['Medium', 2], ['Low', 3]]),
+                    {},
+                    class: "form-select"
+                %>
+              </div>
+              <%= form.hidden_field :status, value: 0 %>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <%= form.submit "Create Task", class: "btn btn-primary" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= javascript_tag do %>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
+
+    const taskLists = document.querySelectorAll('.list-group');
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+    const deleteBin = document.getElementById('delete-bin');
+    console.log('deleteBin element:', deleteBin);
+
+    // Function to apply completed style
+    function applyCompletedStyle(item) {
+      item.style.textDecoration = 'line-through';
+      item.style.color = '#6b7280';
+    }
+
+    // Function to remove completed style
+    function removeCompletedStyle(item) {
+      item.style.textDecoration = 'none';
+      item.style.color = '#333';
+    }
+
+    // Apply initial style to completed tasks on page load
+    document.querySelectorAll('.status-section[data-status="complete"] .list-group-item').forEach(item => {
+      applyCompletedStyle(item);
+    });
+
+    taskLists.forEach(list => {
+      new Sortable(list, {
+        group: 'tasks',
+        animation: 150,
+        ghostClass: 'task-ghost',
+        onStart: function(evt) {
+          deleteBin.classList.add('active');
+        },
+        onEnd: function(evt) {
+          deleteBin.classList.remove('active');
+
+          // Check if the task was dropped on the delete bin
+          if (evt.to === deleteBin) {
+            console.log('evt.to:', evt.to);
+            console.log('deleteBin:', deleteBin);
+
+            const taskId = evt.item.dataset.taskId;
+            console.log('Deleting task with ID:', taskId); // Add this line
+
+            fetch(`/tasks/${taskId}`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token,
+                'Accept': 'application/json'
+              }
+            })
+            .then(response => {
+              if (!response.ok) throw new Error('Network response was not ok');
+              evt.item.remove(); // Remove the task from the list
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              // Optionally revert the drag if there's an error
+              evt.from.appendChild(evt.item);
+            });
+          } else {
+            const taskId = evt.item.dataset.taskId;
+            const newStatus = evt.to.closest('.status-section').dataset.status;
+
+            const statusMap = {
+              'incomplete': 0,
+              'ongoing': 1,
+              'complete': 2
+            };
+
+            fetch(`/tasks/${taskId}/update_status`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': token,
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({ status: statusMap[newStatus] })
+            })
+            .then(response => {
+              if (!response.ok) throw new Error('Network response was not ok');
+              return response.json();
+            })
+            .then(data => {
+              if (newStatus === 'complete') {
+                applyCompletedStyle(evt.item);
+              } else {
+                removeCompletedStyle(evt.item);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              evt.from.appendChild(evt.item); // revert on error
+            });
+          }
+        }
+      });
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const existingLabel = document.getElementById('existing_label');
+    const newLabel = document.getElementById('new_label');
+
+    existingLabel.addEventListener('change', function() {
+      if (this.value) {
+        newLabel.value = '';
+        newLabel.disabled = true;
+      } else {
+        newLabel.disabled = false;
+      }
+    });
+
+    newLabel.addEventListener('input', function() {
+      if (this.value) {
+        existingLabel.value = '';
+        existingLabel.disabled = true;
+      } else {
+        newLabel.disabled = false;
+      }
+    });
+  });
+
+  // Function to reset the add task form
+  function resetAddTaskForm() {
+    const form = document.getElementById('addTaskForm');
+    form.reset(); // Reset the form
+
+    // Clear label selections
+    const existingLabel = document.getElementById('existing_label');
+    const newLabel = document.getElementById('new_label');
+    existingLabel.value = '';
+    newLabel.value = '';
+    existingLabel.disabled = false;
+    newLabel.disabled = false;
+  }
+
+  // Add event listener to the add task modal to reset the form when it's shown
+  const addTaskModal = document.getElementById('addTaskModal');
+  addTaskModal.addEventListener('show.bs.modal', function (event) {
+    resetAddTaskForm();
+  });
+<% end %>

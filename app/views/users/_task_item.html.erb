@@ -1,0 +1,43 @@
+<li class="list-group-item position-relative" draggable="true" data-task-id="<%= task.id %>" 
+    style="
+      background: white;
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      min-height: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      <%= 'text-decoration: line-through; color: #6b7280;' if local_assigns[:completed] %>
+    "
+    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'"
+    onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+  <span class="task-title" style="
+    color: #333;
+    font-size: 0.9rem;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  ">
+    <%= task.title %>
+  </span>
+
+  <%= button_to task_path(task), 
+      method: :delete, 
+      class: "btn btn-link p-0", 
+      style: "
+        font-size: 0.8rem;
+        color: #ccc;
+        transition: color 0.2s ease;
+        margin-left: 8px;
+      ",
+      onmouseover: "this.style.color='#dc3545'",
+      onmouseout: "this.style.color='#ccc'",
+      data: { confirm: "Delete this task?" } do %>
+    <i class="fas fa-times-circle"></i>
+  <% end %>
+</li>

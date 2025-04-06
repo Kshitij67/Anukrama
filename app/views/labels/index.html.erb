@@ -1,0 +1,37 @@
+<p style="color: green"><%= notice %></p>
+
+<% content_for :title, "Labels" %>
+
+<h1>Labels</h1>
+
+<div id="labels">
+  <% @labels.each do |label| %>
+    <%= render label %>
+    <p>
+      <%= link_to "Show this label", label %>
+    </p>
+  <% end %>
+</div>
+
+<%= link_to "New label", new_label_path %>
+
+
+             <div id="sortable-multi-1-1" class="sortable-list d-flex align-items-start" data-mdb-sortable-init="" data-mdb-item-class="sortable-item-nested">
+               <div id="sortable-multi-2-2" data-mdb-sortable-init="" class="sortable-list sortable-item-nested" data-mdb-connected-list="#sortable-multi-2-1" data-mdb-drag-handle=".drag-handler" data-mdb-id="sortable-item-934947">
+                 <h4 class="text-center pt-2 drag-handler">To do</h4>
+                 <div class="sortable-item" data-mdb-id="sortable-item-852018">Item 1</div>
+                 <div class="sortable-item" data-mdb-id="sortable-item-522541">Item 2</div>
+                 <div class="sortable-item" data-mdb-id="sortable-item-993468">Item 3</div>
+                 <div class="sortable-item" data-mdb-id="sortable-item-341839">Item 4</div>
+                 <div class="sortable-item" data-mdb-id="sortable-item-440657">Item 5</div>
+               </div>
+
+               <div id="sortable-multi-2-1" class="sortable-list sortable-item-nested" data-mdb-sortable-init="" data-mdb-connected-list="#sortable-multi-2-2" data-mdb-drag-handle=".drag-handler" data-mdb-id="sortable-item-684208">
+                 <h4 class="text-center pt-2 drag-handler">Done</h4>
+                 <div class="sortable-item" data-mdb-id="sortable-item-789317">item 6</div>
+                 <div class="sortable-item" data-mdb-id="sortable-item-403525">item 7</div>
+                 <div class="sortable-item" data-mdb-id="sortable-item-114842">item 8</div>
+                 <div class="sortable-item" data-mdb-id="sortable-item-400851">item 9</div>
+               </div>
+             </div>
+           
