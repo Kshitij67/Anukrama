@@ -130,4 +130,4 @@ document.addEventListener("DOMContentLoaded", function() {
 document.addEventListener("turbo:load", function() {
   console.log("Turbo Loaded - Setting up Sortable");
   setupDeleteBin();
-});
+});import * as bootstrap from "bootstrap"
