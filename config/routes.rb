@@ -1,12 +1,4 @@
 Rails.application.routes.draw do
-  resources :labels
-  resources :tasks
-  get "sessions/new"
-  get "sessions/create"
-  get "sessions/destroy"
-  get "users/new"
-  get "users/create"
-  get "users/login"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -25,19 +17,21 @@ Rails.application.routes.draw do
   get "login", to: "sessions#new"
   post "login", to: "sessions#create"
   get "dashboard", to: "users#dashboard"
-
   delete "logout", to: "sessions#destroy"
+  
   resources :users, only: [ :new, :create, :update ]
-
-  resources :labels do
-    resources :tasks, only: [ :create, :update, :destroy ], shallow: true
-  end
-
-  resources :tasks do
-    member do
-      patch :update_status
+  
+  resources :users, only: [ :show ] do
+    resources :tasks, only: [ :create, :update, :destroy ], shallow: true do
+      member do
+        patch :update_status
+      end
+      match '*path', to: 'application#not_found', via: :all 
     end
+    match '*path', to: 'application#not_found', via: :all 
   end
 
-  resources :tasks
+
+  match '*path', to: 'application#not_found', via: :all 
+
 end

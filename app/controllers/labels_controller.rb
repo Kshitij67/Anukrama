@@ -25,25 +25,25 @@ class LabelsController < ApplicationController
     @label = current_user.labels.build(label_params) # Associate with current user
 
     if @label.save
-      redirect_to users_path(current_user), notice: "Label was successfully created."
+      redirect_to root_path, notice: "Label was successfully created."
     else
-      render :new, status: :unprocessable_entity
+      redirect_to root_path, notice: "Label was not created."
     end
   end
 
   # PATCH/PUT /labels/1 or /labels/1.json
   def update
     if @label.update(label_params)
-      redirect_to users_path(current_user), notice: "Label was successfully updated."
+      redirect_to root_path, notice: "Label was successfully updated."
     else
-      render :edit, status: :unprocessable_entity
+      redirect_to root_path, notice: "Label was not updated."
     end
   end
 
   # DELETE /labels/1 or /labels/1.json
   def destroy
     @label.destroy
-    redirect_to users_path(current_user), notice: "Label was successfully destroyed."
+    redirect_to root_path, notice: "Label was successfully destroyed."
   end
 
   private
@@ -52,7 +52,7 @@ class LabelsController < ApplicationController
   def set_label
     @label = current_user.labels.find(params[:id]) # Find label for current user
   rescue ActiveRecord::RecordNotFound
-    redirect_to users_path(current_user), alert: "Label not found."
+    redirect_to root_path, alert: "Label not found."
   end
 
   # Only allow a list of trusted parameters through.

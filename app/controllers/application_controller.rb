@@ -2,6 +2,11 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
   before_action :authenticate_user!
 
+  def not_found
+    flash[:notice] = "URL NOT FOUND"
+    redirect_to root_path
+  end
+
   private
 
   def authenticate_user!

@@ -36,6 +36,43 @@ padding: 1rem;
       pointer-events: auto;
       transform: scale(1.2);
     }
+    
+    /* Priority badges */
+    .priority-high {
+      background-color: #ef5350 !important;
+      color: white !important;
+    }
+    
+    .priority-medium {
+      background-color: #ffb74d !important;
+      color: #664d03 !important;
+    }
+    
+    .priority-low {
+      background-color: #66bb6a !important;
+      color: white !important;
+    }
+    
+    /* Task card styles */
+    .task-card {
+      background: white;
+      border-radius: 8px !important;
+      margin-bottom: 0.75rem !important;
+      border-left: 5px solid #ddd !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+      transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+      min-height: 60px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      padding: 0.75rem 1rem !important;
+      cursor: pointer !important;
+    }
+    
+    .task-card:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
   </style>
 
   <div style="
@@ -82,24 +119,29 @@ padding: 1rem;
       ">
         <ul class="list-group" id="incomplete-tasks">
           <% @incomplete.each do |task| %>
+            <% 
+              priority_class = case task.priority 
+                when 1 then "priority-high"
+                when 2 then "priority-medium"
+                when 3 then "priority-low"
+              end
+              
+              border_color = case task.priority
+                when 1 then "#ef5350"
+                when 2 then "#ffb74d"
+                when 3 then "#66bb6a"
+                else "#ddd"
+              end
+              
+              priority_text = case task.priority
+                when 1 then "High"
+                when 2 then "Medium"
+                when 3 then "Low"
+              end
+            %>
             <li class="list-group-item position-relative task-card" draggable="true" data-task-id="<%= task.id %>"
                 data-bs-toggle="modal" data-bs-target="#taskDetailsModal<%= task.id %>"
-                style="
-                  background: white;
-                  border-radius: 10px;
-                  margin-bottom: 0.5rem;
-                  border: 1px solid rgba(0,0,0,0.1);
-                  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                  transition: transform 0.2s ease, box-shadow 0.2s ease;
-                  min-height: 50px;
-                  display: flex;
-                  flex-direction: column; /* Stack title, due date, and priority */
-                  align-items: flex-start; /* Align items to the start */
-                  padding: 0.75rem 1rem;
-                  cursor: pointer; /* Indicate it's clickable */
-                "
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'"
-                onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+                style="border-left-color: <%= border_color %> !important">
               <span class="task-title" style="
                 color: #333;
                 font-size: 1rem; /* Slightly larger title */
@@ -112,31 +154,39 @@ padding: 1rem;
                 <%= task.title %>
               </span>
 
-              <% if task.due_date.present? %>
-                <small class="text-muted" style="
-                  font-size: 0.75rem;
-                  margin-top: 0.25rem; /* Add some space */
-                ">
-                  Due: <%= time_ago_in_words(task.due_date) %> ago
-                </small>
-              <% end %>
+              <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 0.5rem; align-items: center;">
+                <% if task.due_date.present? %>
+                  <small class="text-muted" style="
+                    font-size: 0.75rem;
+                  ">
+                    Due: <%= time_ago_in_words(task.due_date) %> ago
+                  </small>
+                <% else %>
+                  <small></small>
+                <% end %>
 
-              <% priority_text = case task.priority %>
-              <% when 1 %>
-                <% "High" %>
-              <% when 2 %>
-                <% "Medium" %>
-              <% when 3 %>
-                <% "Low" %>
-              <% end %>
-
-              <% if priority_text.present? %>
-                <span class="badge bg-secondary" style="
-                  font-size: 0.65rem;
-                  margin-top: 0.25rem; /* Add some space */
-                ">
-                  <%= priority_text %> Priority
-                </span>
+                <% if priority_text.present? %>
+                  <span class="badge <%= priority_class %>" style="
+                    font-size: 0.65rem;
+                    padding: 0.25rem 0.5rem;
+                  ">
+                    <%= priority_text %>
+                  </span>
+                <% end %>
+              </div>
+              
+              <% if task.label&.name.present? %>
+                <div style="margin-top: 0.5rem;">
+                  <span style="
+                    font-size: 0.65rem;
+                    padding: 0.15rem 0.4rem;
+                    background-color: #e2e8f0;
+                    color: #4a5568;
+                    border-radius: 4px;
+                  ">
+                    <%= task.label&.name %>
+                  </span>
+                </div>
               <% end %>
             </li>
 
@@ -151,7 +201,7 @@ padding: 1rem;
                   <div class="modal-body">
                     <p><strong>Description:</strong> <%= task.description %></p>
                     <p><strong>Due Date:</strong> <%= task.due_date&.strftime("%B %d, %Y") || "No due date" %></p>
-                    <p><strong>Priority:</strong> <%= priority_text %></p>
+                    <p><strong>Priority:</strong> <span class="badge <%= priority_class %>"><%= priority_text %></span></p>
                     <p><strong>Label:</strong> <%= task.label&.name || "No label" %></p>
                   </div>
                   <div class="modal-footer">
@@ -193,24 +243,29 @@ padding: 1rem;
       ">
         <ul class="list-group" id="ongoing-tasks">
           <% @ongoing.each do |task| %>
+            <% 
+              priority_class = case task.priority 
+                when 1 then "priority-high"
+                when 2 then "priority-medium"
+                when 3 then "priority-low"
+              end
+              
+              border_color = case task.priority
+                when 1 then "#ef5350"
+                when 2 then "#ffb74d"
+                when 3 then "#66bb6a"
+                else "#ddd"
+              end
+              
+              priority_text = case task.priority
+                when 1 then "High"
+                when 2 then "Medium"
+                when 3 then "Low"
+              end
+            %>
             <li class="list-group-item position-relative task-card" draggable="true" data-task-id="<%= task.id %>"
                 data-bs-toggle="modal" data-bs-target="#taskDetailsModal<%= task.id %>"
-                style="
-                  background: white;
-                  border-radius: 10px;
-                  margin-bottom: 0.5rem;
-                  border: 1px solid rgba(0,0,0,0.1);
-                  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                  transition: transform 0.2s ease, box-shadow 0.2s ease;
-                  min-height: 50px;
-                  display: flex;
-                  flex-direction: column; /* Stack title, due date, and priority */
-                  align-items: flex-start; /* Align items to the start */
-                  padding: 0.75rem 1rem;
-                  cursor: pointer; /* Indicate it's clickable */
-                "
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'"
-                onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+                style="border-left-color: <%= border_color %> !important">
               <span class="task-title" style="
                 color: #333;
                 font-size: 1rem; /* Slightly larger title */
@@ -223,31 +278,39 @@ padding: 1rem;
                 <%= task.title %>
               </span>
 
-              <% if task.due_date.present? %>
-                <small class="text-muted" style="
-                  font-size: 0.75rem;
-                  margin-top: 0.25rem; /* Add some space */
-                ">
-                  Due: <%= time_ago_in_words(task.due_date) %> ago
-                </small>
-              <% end %>
+              <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 0.5rem; align-items: center;">
+                <% if task.due_date.present? %>
+                  <small class="text-muted" style="
+                    font-size: 0.75rem;
+                  ">
+                    Due: <%= time_ago_in_words(task.due_date) %> ago
+                  </small>
+                <% else %>
+                  <small></small>
+                <% end %>
 
-              <% priority_text = case task.priority %>
-              <% when 1 %>
-                <% "High" %>
-              <% when 2 %>
-                <% "Medium" %>
-              <% when 3 %>
-                <% "Low" %>
-              <% end %>
-
-              <% if priority_text.present? %>
-                <span class="badge bg-secondary" style="
-                  font-size: 0.65rem;
-                  margin-top: 0.25rem; /* Add some space */
-                ">
-                  <%= priority_text %> Priority
-                </span>
+                <% if priority_text.present? %>
+                  <span class="badge <%= priority_class %>" style="
+                    font-size: 0.65rem;
+                    padding: 0.25rem 0.5rem;
+                  ">
+                    <%= priority_text %>
+                  </span>
+                <% end %>
+              </div>
+              
+              <% if task.label&.name.present? %>
+                <div style="margin-top: 0.5rem;">
+                  <span style="
+                    font-size: 0.65rem;
+                    padding: 0.15rem 0.4rem;
+                    background-color: #e2e8f0;
+                    color: #4a5568;
+                    border-radius: 4px;
+                  ">
+                    <%= task.label&.name %>
+                  </span>
+                </div>
               <% end %>
             </li>
 
@@ -262,7 +325,7 @@ padding: 1rem;
                   <div class="modal-body">
                     <p><strong>Description:</strong> <%= task.description %></p>
                     <p><strong>Due Date:</strong> <%= task.due_date&.strftime("%B %d, %Y") || "No due date" %></p>
-                    <p><strong>Priority:</strong> <%= priority_text %></p>
+                    <p><strong>Priority:</strong> <span class="badge <%= priority_class %>"><%= priority_text %></span></p>
                     <p><strong>Label:</strong> <%= task.label&.name || "No label" %></p>
                   </div>
                   <div class="modal-footer">
@@ -304,26 +367,31 @@ padding: 1rem;
       ">
         <ul class="list-group" id="complete-tasks">
           <% @complete.each do |task| %>
+            <% 
+              priority_class = case task.priority 
+                when 1 then "priority-high"
+                when 2 then "priority-medium"
+                when 3 then "priority-low"
+              end
+              
+              border_color = case task.priority
+                when 1 then "#ef5350"
+                when 2 then "#ffb74d"
+                when 3 then "#66bb6a"
+                else "#ddd"
+              end
+              
+              priority_text = case task.priority
+                when 1 then "High"
+                when 2 then "Medium"
+                when 3 then "Low"
+              end
+            %>
             <li class="list-group-item position-relative task-card" draggable="true" data-task-id="<%= task.id %>"
                 data-bs-toggle="modal" data-bs-target="#taskDetailsModal<%= task.id %>"
-                style="
-                  background: white;
-                  border-radius: 10px;
-                  margin-bottom: 0.5rem;
-                  border: 1px solid rgba(0,0,0,0.1);
-                  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                  transition: transform 0.2s ease, box-shadow 0.2s ease;
-                  min-height: 50px;
-                  display: flex;
-                  flex-direction: column; /* Stack title, due date, and priority */
-                  align-items: flex-start; /* Align items to the start */
-                  padding: 0.75rem 1rem;
-                  cursor: pointer; /* Indicate it's clickable */
-                "
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'"
-                onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+                style="border-left-color: <%= border_color %> !important; text-decoration: line-through;">
               <span class="task-title" style="
-                color: #333;
+                color: #6b7280;
                 font-size: 1rem; /* Slightly larger title */
                 font-weight: 500; /* Semi-bold */
                 overflow: hidden;
@@ -334,31 +402,41 @@ padding: 1rem;
                 <%= task.title %>
               </span>
 
-              <% if task.due_date.present? %>
-                <small class="text-muted" style="
-                  font-size: 0.75rem;
-                  margin-top: 0.25rem; /* Add some space */
-                ">
-                  Due: <%= time_ago_in_words(task.due_date) %> ago
-                </small>
-              <% end %>
+              <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 0.5rem; align-items: center;">
+                <% if task.due_date.present? %>
+                  <small class="text-muted" style="
+                    font-size: 0.75rem;
+                  ">
+                    Due: <%= time_ago_in_words(task.due_date) %> ago
+                  </small>
+                <% else %>
+                  <small></small>
+                <% end %>
 
-              <% priority_text = case task.priority %>
-              <% when 1 %>
-                <% "High" %>
-              <% when 2 %>
-                <% "Medium" %>
-              <% when 3 %>
-                <% "Low" %>
-              <% end %>
-
-              <% if priority_text.present? %>
-                <span class="badge bg-secondary" style="
-                  font-size: 0.65rem;
-                  margin-top: 0.25rem; /* Add some space */
-                ">
-                  <%= priority_text %> Priority
-                </span>
+                <% if priority_text.present? %>
+                  <span class="badge <%= priority_class %>" style="
+                    font-size: 0.65rem;
+                    padding: 0.25rem 0.5rem;
+                    opacity: 0.7;
+                  ">
+                    <%= priority_text %>
+                  </span>
+                <% end %>
+              </div>
+              
+              <% if task.label&.name.present? %>
+                <div style="margin-top: 0.5rem;">
+                  <span style="
+                    font-size: 0.65rem;
+                    padding: 0.15rem 0.4rem;
+                    background-color: #e2e8f0;
+                    color: #4a5568;
+                    border-radius: 4px;
+                    opacity: 0.7;
+                  ">
+                    <%= task.label&.name %>
+                  </span>
+                </div>
               <% end %>
             </li>
 
@@ -373,7 +451,7 @@ padding: 1rem;
                   <div class="modal-body">
                     <p><strong>Description:</strong> <%= task.description %></p>
                     <p><strong>Due Date:</strong> <%= task.due_date&.strftime("%B %d, %Y") || "No due date" %></p>
-                    <p><strong>Priority:</strong> <%= priority_text %></p>
+                    <p><strong>Priority:</strong> <span class="badge <%= priority_class %>"><%= priority_text %></span></p>
                     <p><strong>Label:</strong> <%= task.label&.name || "No label" %></p>
                   </div>
                   <div class="modal-footer">
@@ -418,9 +496,8 @@ padding: 1rem;
             <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-            <!-- filepath: /home/kshitij/Projects/Anukrama/app/views/users/show.html.erb -->
           <div class="modal-body">
-            <%= form_with(model: Task.new, url: tasks_path, local: true, id: 'addTaskForm') do |form| %>
+            <%= form_with(model: Task.new, url: user_tasks_path(current_user), local: true, id: 'addTaskForm') do |form| %>
               <div class="mb-3">
                 <%= form.label :title, class: "form-label" %>
                 <%= form.text_field :title, class: "form-control", required: true %>
@@ -477,6 +554,7 @@ padding: 1rem;
     const taskLists = document.querySelectorAll('.list-group');
     const token = document.querySelector('meta[name="csrf-token"]')?.content;
     const deleteBin = document.getElementById('delete-bin');
+    const userId = <%= current_user.id %>;
     console.log('deleteBin element:', deleteBin);
 
     // Function to apply completed style
@@ -513,7 +591,7 @@ padding: 1rem;
             console.log('deleteBin:', deleteBin);
 
             const taskId = evt.item.dataset.taskId;
-            console.log('Deleting task with ID:', taskId); // Add this line
+            console.log('Deleting task with ID:', taskId);
 
             fetch(`/tasks/${taskId}`, {
               method: 'DELETE',
@@ -569,6 +647,31 @@ padding: 1rem;
           }
         }
       });
+    });
+    
+    // Make the delete bin a valid drop target
+    new Sortable(deleteBin, {
+      group: 'tasks',
+      onAdd: function(evt) {
+        const taskId = evt.item.dataset.taskId;
+        console.log('Task dropped on delete bin with ID:', taskId);
+        
+        fetch(`/tasks/${taskId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': token,
+            'Accept': 'application/json'
+          }
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Network response was not ok');
+          evt.item.remove(); // Remove the task from the DOM
+        })
+        .catch(error => {
+          console.error('Delete error:', error);
+        });
+      }
     });
   });
 

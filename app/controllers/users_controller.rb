@@ -19,7 +19,11 @@ class UsersController < ApplicationController
     @ongoing_count = Task.where(user_id: session[:user_id]).where(status: 1).size
     @complete_count = Task.where(user_id: session[:user_id]).where(status: 2).size
   end
+  
   def show
+    if current_user.id != session[:user_id]
+      redirect_to "application#not_found"
+    end
     @incomplete = Task.where(user_id: session[:user_id]).where(status: 0)
     @ongoing = Task.where(user_id: session[:user_id]).where(status: 1)
     @complete = Task.where(user_id: session[:user_id]).where(status: 2)
