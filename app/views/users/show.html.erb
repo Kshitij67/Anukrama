@@ -549,13 +549,11 @@ padding: 1rem;
 
 <%= javascript_tag do %>
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded event fired');
 
     const taskLists = document.querySelectorAll('.list-group');
     const token = document.querySelector('meta[name="csrf-token"]')?.content;
     const deleteBin = document.getElementById('delete-bin');
     const userId = <%= current_user.id %>;
-    console.log('deleteBin element:', deleteBin);
 
     // Function to apply completed style
     function applyCompletedStyle(item) {
@@ -586,31 +584,7 @@ padding: 1rem;
           deleteBin.classList.remove('active');
 
           // Check if the task was dropped on the delete bin
-          if (evt.to === deleteBin) {
-            console.log('evt.to:', evt.to);
-            console.log('deleteBin:', deleteBin);
-
-            const taskId = evt.item.dataset.taskId;
-            console.log('Deleting task with ID:', taskId);
-
-            fetch(`/tasks/${taskId}`, {
-              method: 'DELETE',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': token,
-                'Accept': 'application/json'
-              }
-            })
-            .then(response => {
-              if (!response.ok) throw new Error('Network response was not ok');
-              evt.item.remove(); // Remove the task from the list
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              // Optionally revert the drag if there's an error
-              evt.from.appendChild(evt.item);
-            });
-          } else {
+           if(evt.to != deleteBin) {
             const taskId = evt.item.dataset.taskId;
             const newStatus = evt.to.closest('.status-section').dataset.status;
 
@@ -644,6 +618,8 @@ padding: 1rem;
               console.error('Error:', error);
               evt.from.appendChild(evt.item); // revert on error
             });
+          }else{
+            
           }
         }
       });
@@ -654,7 +630,6 @@ padding: 1rem;
       group: 'tasks',
       onAdd: function(evt) {
         const taskId = evt.item.dataset.taskId;
-        console.log('Task dropped on delete bin with ID:', taskId);
         
         fetch(`/tasks/${taskId}`, {
           method: 'DELETE',
@@ -665,12 +640,15 @@ padding: 1rem;
           }
         })
         .then(response => {
+          console.log("Probably SENDING TWO QUERIES ??");
           if (!response.ok) throw new Error('Network response was not ok');
           evt.item.remove(); // Remove the task from the DOM
         })
         .catch(error => {
           console.error('Delete error:', error);
+          console.log('YES GOT IT', taskId);
         });
+        
       }
     });
   });

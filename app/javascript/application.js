@@ -4,7 +4,6 @@ console.log("✅ application.js loaded");
 
 import "@hotwired/turbo-rails";
 import "controllers";
-import * as bootstrap from "bootstrap";
 import Sortable from "sortablejs"; // Import Sortable only once
 
 window.Sortable = Sortable; // Make Sortable globally available
@@ -25,35 +24,6 @@ function setupDeleteBin() {
   console.log("Delete bin found:", deleteBin);
   
   // Make the delete bin a drop target
-  Sortable.create(deleteBin, {
-    group: 'tasks', // Same group as the task lists
-    animation: 150,
-    onAdd: function(evt) {
-      console.log("Task dropped on delete bin");
-      
-      const taskId = evt.item.dataset.taskId;
-      console.log('Attempting to delete task with ID:', taskId);
-      
-      // Send delete request to server
-      fetch(`/tasks/${taskId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': token,
-          'Accept': 'application/json'
-        }
-      })
-      .then(response => {
-        console.log('Delete response:', response);
-        if (!response.ok) throw new Error('Network response was not ok');
-        evt.item.remove(); // Remove the task from the DOM
-      })
-      .catch(error => {
-        console.error('Delete error:', error);
-        // The item will stay in the delete bin on error, which is what we want
-      });
-    }
-  });
   
   // Make tasks draggable between columns
   document.querySelectorAll(".list-group").forEach(taskList => {
@@ -130,4 +100,4 @@ document.addEventListener("DOMContentLoaded", function() {
 document.addEventListener("turbo:load", function() {
   console.log("Turbo Loaded - Setting up Sortable");
   setupDeleteBin();
-});import * as bootstrap from "bootstrap"
+})

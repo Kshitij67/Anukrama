@@ -1,6 +1,10 @@
 class UsersController < ApplicationController
   skip_before_action :authenticate_user!, only: [ :new, :create ]
   def new
+    puts "user_signed_in? #{user_signed_in?}"
+    if user_signed_in? 
+      redirect_to root_path, notice: "You are already logged in"
+    end
     @user = User.new
   end
 
@@ -24,6 +28,7 @@ class UsersController < ApplicationController
     if current_user.id != session[:user_id]
       redirect_to "application#not_found"
     end
+    
     @incomplete = Task.where(user_id: session[:user_id]).where(status: 0)
     @ongoing = Task.where(user_id: session[:user_id]).where(status: 1)
     @complete = Task.where(user_id: session[:user_id]).where(status: 2)

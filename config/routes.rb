@@ -18,7 +18,7 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   get "dashboard", to: "users#dashboard"
   delete "logout", to: "sessions#destroy"
-  
+
   resources :users, only: [ :new, :create, :update ]
   
   resources :users, only: [ :show ] do

@@ -1,6 +1,9 @@
 class SessionsController < ApplicationController
   skip_before_action :authenticate_user!, only: [ :new, :create ]
   def new
+    if user_signed_in? 
+      redirect_to root_path, notice: "You are already logged in"
+    end
   end
 
   def create
